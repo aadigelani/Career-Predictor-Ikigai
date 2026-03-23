@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ikigai Career Predictor</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Zen+Kaku+Gothic+New:wght@300;400&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#F6F1E7;--washi:#EDE6D8;--ink:#1C1914;--stone:#7A7268;
+  --persimmon:#C4614A;--persimmon-l:#EDCDC6;
+  --sage:#5C7B5A;--sage-l:#C8D8C4;
+  --indigo:#4A5B8C;--indigo-l:#C4CBE0;
+  --gold:#B8892A;--gold-l:#EDE0C0;
+  --plum:#7A5C8C;--plum-l:#DDD0E8;
+  --border:rgba(28,25,20,0.12);--border-s:rgba(28,25,20,0.25);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Zen Kaku Gothic New',sans-serif;background-color:var(--cream);color:var(--ink);font-size:15px;line-height:1.75;min-height:100vh;position:relative;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)" opacity="0.05"/%3E%3C/svg%3E');pointer-events:none;z-index:9999}
+.page{display:none;min-height:100vh;opacity:0;animation:slideFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards}
+.page.active{display:block}
+@keyframes slideFadeIn{0%{opacity:0;transform:translateY(15px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes floatAnim{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(196,97,74,0)}50%{box-shadow:0 0 12px 2px rgba(196,97,74,0.3)}}
+@keyframes rippleAnim{to{transform:scale(4);opacity:0}}
+@keyframes countUp{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes slideRight{0%{width:0%}100%{}}
+.sakura-branch{position:fixed;bottom:-20px;right:-20px;width:50vw;min-width:300px;max-width:600px;height:50vh;min-height:300px;max-height:600px;pointer-events:none;z-index:0;opacity:0.35;background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><path d="M400,400 Q280,300 250,200 T120,100" fill="none" stroke="%237A7268" stroke-width="1.5" opacity="0.3"/><path d="M250,200 Q200,160 160,180" fill="none" stroke="%237A7268" stroke-width="1" opacity="0.3"/><path d="M120,100 Q80,60 40,50" fill="none" stroke="%237A7268" stroke-width="1" opacity="0.3"/><circle cx="250" cy="200" r="12" fill="%23C4614A" opacity="0.4"/><circle cx="265" cy="185" r="8" fill="%23C4614A" opacity="0.3"/><circle cx="160" cy="180" r="10" fill="%23C4614A" opacity="0.4"/><circle cx="120" cy="100" r="14" fill="%23C4614A" opacity="0.4"/><circle cx="135" cy="85" r="9" fill="%23EDCDC6" opacity="0.5"/><circle cx="40" cy="50" r="11" fill="%23C4614A" opacity="0.4"/><circle cx="20" cy="70" r="6" fill="%23EDCDC6" opacity="0.6"/></svg>') no-repeat bottom right;background-size:contain;transition:opacity 0.5s}
+#ambient-canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:50}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(246,241,231,0.94);backdrop-filter:blur(8px);border-bottom:0.5px solid var(--border);padding:0 3rem;display:flex;align-items:center;justify-content:space-between;height:60px}
+.nav-logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;letter-spacing:.08em;cursor:pointer}
+.nav-logo span{color:var(--persimmon)}
+.nav-links{display:flex;gap:2.5rem;list-style:none}
+.nav-links a{font-size:13px;letter-spacing:.1em;color:var(--stone);text-decoration:none;cursor:pointer;transition:color .2s}
+.nav-links a:hover,.nav-links a.active{color:var(--ink)}
+.server-pill{display:inline-flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.1em;padding:5px 14px;border:0.5px solid var(--border);background:var(--washi);color:var(--stone)}
+.sdot{width:8px;height:8px;border-radius:50%;background:var(--stone)}
+.sdot.on{background:var(--sage)}.sdot.off{background:var(--persimmon)}
+
+/* BUTTONS */
+.btn{position:relative;overflow:hidden;display:inline-block;font-family:'Zen Kaku Gothic New',sans-serif;font-size:13px;letter-spacing:.15em;padding:14px 36px;cursor:pointer;border:none;transition:all 0.4s cubic-bezier(0.16,1,0.3,1);text-transform:uppercase;transform:translateZ(0)}
+.btn:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 8px 24px rgba(28,25,20,0.08)}
+.btn:active{transform:translateY(0) scale(0.98)}
+.btn-p{background:var(--ink);color:var(--cream)}.btn-p:hover{background:var(--persimmon);box-shadow:0 8px 24px rgba(196,97,74,0.2)}.btn-p:disabled{background:var(--stone);cursor:not-allowed;transform:none;box-shadow:none}
+.btn-s{background:transparent;color:var(--ink);border:0.5px solid var(--border-s);margin-left:1rem}.btn-s:hover{border-color:var(--persimmon);color:var(--persimmon);background:rgba(196,97,74,0.03)}
+.ripple{position:absolute;background:rgba(255,255,255,0.3);border-radius:50%;transform:scale(0);animation:rippleAnim 0.6s linear;pointer-events:none}
+
+/* HOME */
+.hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;padding-top:60px}
+.hero-left{display:flex;flex-direction:column;justify-content:center;padding:5rem 4rem 5rem 5rem}
+.hero-eyebrow{font-size:11px;letter-spacing:.25em;color:var(--stone);text-transform:uppercase;margin-bottom:1.5rem}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(40px,5vw,66px);font-weight:300;line-height:1.1;margin-bottom:1.5rem}
+.hero-title em{font-style:italic;color:var(--persimmon)}
+.hero-sub{font-size:15px;color:var(--stone);max-width:400px;line-height:1.9;margin-bottom:2rem}
+.hero-right{display:flex;align-items:center;justify-content:center;padding:5rem 4rem;perspective:1000px}
+.ikigai-diagram{position:relative;width:440px;height:440px;transition:transform 0.5s ease-out;transform-style:preserve-3d;animation:floatAnim 6s ease-in-out infinite}
+.ikc{position:absolute;width:260px;height:260px;border-radius:50%;opacity:.6;mix-blend-mode:multiply;transition:all .5s cubic-bezier(0.16,1,0.3,1);transform-origin:center}
+.ikc:hover{opacity:.85;transform:scale(1.05)!important;z-index:10;filter:brightness(1.1) drop-shadow(0 0 20px rgba(0,0,0,0.1))}
+.ikc.love{background:var(--persimmon);top:0;left:50%;transform:translateX(-50%)}
+.ikc.good{background:var(--gold);top:50%;left:0;transform:translateY(-50%)}
+.ikc.need{background:var(--sage);top:50%;right:0;transform:translateY(-50%)}
+.ikc.paid{background:var(--indigo);bottom:0;left:50%;transform:translateX(-50%)}
+.ikigai-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) translateZ(20px);text-align:center;z-index:2;transition:all 0.3s}
+.ikigai-center-label{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;letter-spacing:.1em;background:rgba(246,241,231,.85);backdrop-filter:blur(4px);padding:10px 16px;border:0.5px solid var(--border-s);transition:all 0.3s;box-shadow:0 8px 32px rgba(28,25,20,0.05);border-radius:2px}
+.ikigai-center:hover .ikigai-center-label{transform:scale(1.08);background:rgba(246,241,231,.95);box-shadow:0 12px 40px rgba(28,25,20,0.1);color:var(--persimmon)}
+.hero-right:hover .ikigai-diagram{animation-play-state:paused}
+.clabels{position:absolute;inset:0;pointer-events:none}
+.clabel{position:absolute;font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+.cl-love{top:-28px;left:50%;transform:translateX(-50%);color:var(--persimmon)}
+.cl-good{top:50%;left:-64px;transform:translateY(-50%);color:var(--gold)}
+.cl-need{top:50%;right:-64px;transform:translateY(-50%);color:var(--sage)}
+.cl-paid{bottom:-28px;left:50%;transform:translateX(-50%);color:var(--indigo)}
+.steps-section{padding:5rem;background:var(--washi);border-top:0.5px solid var(--border)}
+.section-header{text-align:center;margin-bottom:3rem}
+.section-kana{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--stone);margin-bottom:1rem}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:300}
+.steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem}
+.step-card{padding:2rem 1.5rem;border:0.5px solid var(--border);background:var(--cream);transition:all 0.4s cubic-bezier(0.16,1,0.3,1);position:relative;z-index:1}
+.step-card:hover{transform:translateY(-8px);box-shadow:0 16px 40px rgba(28,25,20,0.06);border-color:var(--border-s);z-index:2}
+.card-step-num{font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:300;color:var(--border);line-height:1;margin-bottom:.75rem;transition:color 0.3s}
+.step-card:hover .card-step-num{color:var(--stone)}
+.step-title{font-size:14px;margin-bottom:.5rem;transition:color 0.3s}
+.step-desc{font-size:13px;color:var(--stone);line-height:1.7}
+.sdot-sm{width:8px;height:8px;border-radius:50%;margin-bottom:1rem}
+
+/* QUIZ */
+#page-quiz{padding-top:60px}
+.quiz-header{padding:3rem 5rem 2rem;border-bottom:0.5px solid var(--border)}
+.quiz-header h1{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300}
+.quiz-meta{display:flex;align-items:center;justify-content:space-between;margin-top:.5rem}
+.quiz-meta p{color:var(--stone);font-size:14px}
+.q-counter{font-size:13px;color:var(--stone);letter-spacing:.08em}
+
+/* Progress bar - 5 segments */
+.progress-wrap{display:flex;gap:6px;margin-top:1.5rem}
+.pseg{flex:1;height:4px;background:var(--border);transition:all .8s cubic-bezier(0.16,1,0.3,1);border-radius:2px;position:relative;overflow:hidden}
+.pseg::after{content:'';position:absolute;top:0;left:0;height:100%;width:0;background:var(--persimmon);transition:width 0.8s cubic-bezier(0.16,1,0.3,1)}
+.pseg.done{background:var(--persimmon-l)}.pseg.done::after{width:100%}
+.pseg.active{background:var(--border)}.pseg.active::after{width:50%;background:var(--ink);animation:pulseGlow 2s infinite}
+
+.quiz-body{padding:3rem 5rem}
+.quiz-section{display:none;opacity:0}
+.quiz-section.active{display:block;animation:slideFadeIn 0.5s ease-out forwards}
+.quiz-section.active .question-block{animation:countUp 0.6s cubic-bezier(0.16,1,0.3,1) both}
+.quiz-section.active .question-block:nth-child(2){animation-delay:0.1s}
+.quiz-section.active .question-block:nth-child(3){animation-delay:0.2s}
+
+/* Circle badge */
+.circle-badge{display:inline-flex;align-items:center;gap:10px;padding:8px 18px;border:0.5px solid var(--border);margin-bottom:2rem;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.bdot{width:10px;height:10px;border-radius:50%}
+.section-divider{border:none;border-top:0.5px solid var(--border);margin:2.5rem 0}
+
+/* Questions within a section */
+.question-block{margin-bottom:2.5rem}
+.q-label{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--stone);margin-bottom:.75rem}
+.q-text{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;margin-bottom:.4rem}
+.q-hint{font-size:13px;color:var(--stone);margin-bottom:1.5rem}
+
+/* MCQ grid */
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.5rem}
+.opt{position:relative;padding:1.1rem 1.25rem;border:0.5px solid var(--border);background:var(--washi);cursor:pointer;transition:all 0.3s cubic-bezier(0.16,1,0.3,1);display:flex;align-items:flex-start;gap:12px;overflow:hidden;z-index:1}
+.opt::before{content:'';position:absolute;inset:0;background:var(--persimmon-l);opacity:0;z-index:-1;transition:all 0.4s cubic-bezier(0.16,1,0.3,1);transform:scaleY(0);transform-origin:bottom}
+.opt:hover{border-color:var(--border-s);transform:translateY(-2px);box-shadow:0 4px 12px rgba(28,25,20,0.05)}
+.opt.sel{border-color:var(--persimmon);box-shadow:0 0 0 1px var(--persimmon), 0 4px 12px rgba(196,97,74,0.1)}
+.opt.sel::before{opacity:1;transform:scaleY(1)}
+.opt-num{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--stone);min-width:18px;line-height:1.4;transition:color 0.3s}
+.opt.sel .opt-num{color:var(--persimmon)}
+.opt-text{font-size:14px;line-height:1.6;transition:transform 0.2s}
+.opt:active .opt-text{transform:scale(0.98)}
+
+/* Sliders */
+.sliders-wrap{display:flex;flex-direction:column;gap:1.5rem}
+.slider-row{display:grid;grid-template-columns:160px 1fr 50px;align-items:center;gap:1rem}
+.slider-trait{font-size:13px;color:var(--stone);letter-spacing:.04em}
+.slider-ends{display:flex;justify-content:space-between;font-size:11px;color:var(--stone);letter-spacing:.06em;margin-top:4px}
+.slider-val{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;text-align:center}
+.slider-wrap-inner{display:flex;flex-direction:column}
+
+input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:3px;background:var(--border-s);outline:none;cursor:pointer;
+  border-radius:0;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:16px;height:16px;background:var(--ink);border-radius:50%;cursor:pointer;transition:background .2s;
+}
+input[type=range]::-webkit-slider-thumb:hover{background:var(--persimmon)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;background:var(--ink);border-radius:50%;border:none;cursor:pointer}
+
+/* About You section - 2 col slider grid */
+.about-sliders{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;margin-bottom:2.5rem}
+.about-slider-card{padding:1.5rem;border:0.5px solid var(--border);background:var(--washi)}
+.asc-title{font-size:12px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:.5rem}
+.asc-q{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;margin-bottom:1rem}
+.asc-ends{display:flex;justify-content:space-between;font-size:11px;color:var(--stone);margin-top:6px}
+.asc-val{text-align:center;font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;margin-bottom:.75rem}
+
+/* MCQ single select */
+.opts-single .opt::before{background:var(--indigo-l)}
+.opts-single .opt.sel-single{border-color:var(--indigo);box-shadow:0 0 0 1px var(--indigo), 0 4px 12px rgba(74,91,140,0.1)}
+.opts-single .opt.sel-single .opt-num{color:var(--indigo)}
+
+.quiz-nav{display:flex;align-items:center;justify-content:space-between;margin-top:2.5rem;padding-top:2rem;border-top:0.5px solid var(--border)}
+
+/* Loading */
+.loading-wrap{text-align:center;padding:5rem}
+.loading-kanji{font-family:serif;font-size:80px;color:var(--border);animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:.8}}
+.loading-text{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--stone);margin-top:1.5rem}
+.loading-sub{font-size:13px;color:var(--stone);margin-top:.5rem;letter-spacing:.08em}
+
+/* RESULTS */
+#page-results{padding-top:60px}
+.results-header{padding:4rem 5rem 3rem;border-bottom:0.5px solid var(--border)}
+.results-header h1{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;margin-bottom:.5rem}
+.results-header p{color:var(--stone)}
+.results-body{padding:3rem 5rem}
+.java-badge{display:inline-flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.1em;padding:5px 14px;border:0.5px solid var(--sage-l);background:var(--sage-l);color:var(--sage);margin-bottom:1.5rem}
+.career-card{border:0.5px solid var(--border);background:var(--washi);margin-bottom:1.5rem;overflow:hidden;transition:all 0.4s cubic-bezier(0.16,1,0.3,1);opacity:0;animation:slideFadeIn 0.6s cubic-bezier(0.16,1,0.3,1) forwards;transform-origin:top;animation-fill-mode:both}
+.career-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(28,25,20,0.06);border-color:var(--border-s)}
+.career-card-header{display:flex;align-items:center;justify-content:space-between;padding:1.5rem 2rem;border-bottom:0.5px solid var(--border)}
+.career-rank{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--border-s);margin-right:1.5rem;line-height:1}
+.career-rank.gold{color:var(--gold)}
+.career-info{flex:1}
+.career-name{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:400;margin-bottom:6px}
+.niche-tag{display:inline-block;font-size:10px;letter-spacing:.1em;padding:2px 8px;background:var(--persimmon-l);color:var(--persimmon);text-transform:uppercase;margin-left:8px;vertical-align:middle}
+.career-score{font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;line-height:1;text-align:center;display:flex;flex-direction:column;align-items:center}
+.career-score span{font-size:14px;color:var(--stone);display:block;font-family:'Zen Kaku Gothic New',sans-serif}
+.career-axes{padding:1.5rem 2rem;display:none;background:var(--cream);border-bottom:0.5px solid var(--border)}
+.career-card.expanded .career-axes{display:block;animation:slideFadeIn 0.4s ease}
+.career-desc{font-size:13px;color:var(--stone);margin-bottom:1.25rem;line-height:1.7}
+.axis-row{display:flex;align-items:center;gap:1rem;margin-bottom:10px}
+.axis-label{font-size:12px;letter-spacing:.06em;color:var(--stone);width:120px;flex-shrink:0;display:flex;align-items:center;gap:6px}
+.axis-bar-wrap{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.axis-bar{height:100%;transition:width 1.2s cubic-bezier(0.16,1,0.3,1);width:0%}
+.axis-pct{font-size:13px;width:40px;text-align:right;flex-shrink:0}
+.career-expand-btn{width:100%;background:transparent;border:none;padding:12px;cursor:pointer;font-family:'Zen Kaku Gothic New',sans-serif;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:var(--stone);transition:all 0.3s}
+.career-expand-btn:hover{background:rgba(28,25,20,0.03);color:var(--ink)}
+.gap-box{border:0.5px solid var(--border);background:var(--washi);padding:1.5rem 2rem;margin-top:2rem;display:flex;gap:1.5rem}
+.gap-title{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--persimmon);margin-bottom:6px}
+.gap-text{font-size:14px;color:var(--stone);line-height:1.75}
+.err-box{border:0.5px solid var(--persimmon-l);background:var(--persimmon-l);padding:2rem;margin-bottom:2rem}
+.err-title{font-size:14px;color:var(--persimmon);font-weight:500;margin-bottom:.5rem}
+.err-text{font-size:13px;color:var(--stone);line-height:1.7}
+.err-code{font-family:monospace;background:var(--washi);padding:1rem;margin-top:1rem;font-size:12px;line-height:1.8}
+.retake-wrap{margin-top:2.5rem;padding-top:2rem;border-top:0.5px solid var(--border)}
+
+/* ABOUT */
+#page-about{padding-top:60px}
+.about-hero{padding:6rem 5rem 4rem;border-bottom:0.5px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center}
+.about-hero h1{font-family:'Cormorant Garamond',serif;font-size:50px;font-weight:300;line-height:1.1;margin-bottom:1.5rem}
+.about-hero h1 em{font-style:italic;color:var(--persimmon)}
+.about-hero p{color:var(--stone);line-height:1.9;font-size:15px;margin-bottom:1rem}
+.kanji{font-size:130px;text-align:center;line-height:1;color:var(--border);font-family:serif}
+.four-circles{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;padding:4rem 5rem}
+.cc{padding:2rem;border:0.5px solid var(--border);background:var(--washi)}
+.cc-icon{width:36px;height:36px;border-radius:50%;margin-bottom:1rem;opacity:.6}
+.cc-title{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:400;margin-bottom:.75rem}
+.cc-title span{font-size:12px;font-family:'Zen Kaku Gothic New',sans-serif;color:var(--stone);margin-left:8px;letter-spacing:.1em}
+.cc p{font-size:14px;color:var(--stone);line-height:1.75}
+.about-careers{padding:0 5rem 5rem}
+.about-careers h2{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;margin-bottom:2rem;padding-top:2rem;border-top:0.5px solid var(--border)}
+.ctable{width:100%;border-collapse:collapse}
+.ctable th{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);padding:10px 16px;border-bottom:0.5px solid var(--border-s);text-align:left}
+.ctable td{font-size:14px;padding:12px 16px;border-bottom:0.5px solid var(--border)}
+.ctable tr:hover td{background:var(--washi)}
+.footer{text-align:center;padding:2rem;border-top:0.5px solid var(--border);font-size:12px;color:var(--stone);letter-spacing:.08em}
+
+/* ── INDIAN ROADMAP STYLES ── */
+.roadmap-section{border-top:0.5px solid var(--border);padding:1.5rem 2rem;background:var(--cream)}
+.roadmap-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.roadmap-title{font-size:13px;font-weight:400;letter-spacing:.08em;color:var(--ink)}
+.roadmap-timeline{font-size:12px;color:var(--stone);letter-spacing:.06em;background:var(--washi);padding:4px 12px;border:0.5px solid var(--border)}
+.roadmap-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.25rem}
+.roadmap-meta-item{padding:.75rem 1rem;border:0.5px solid var(--border);background:var(--washi)}
+.rm-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);margin-bottom:6px}
+.rm-value{font-size:13px;color:var(--ink);line-height:1.5}
+.roadmap-salary{display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;padding:.75rem 1rem;border:0.5px solid var(--border);background:var(--washi)}
+.salary-box{flex:1}
+.salary-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);margin-bottom:4px}
+.salary-val{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--persimmon)}
+.salary-arrow{font-size:20px;color:var(--stone);flex-shrink:0}
+.roadmap-steps-title{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);margin-bottom:.75rem}
+.roadmap-steps{display:flex;flex-direction:column;gap:8px}
+.roadmap-step{display:flex;align-items:flex-start;gap:12px}
+.step-num{display:flex;align-items:center;justify-content:center;min-width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--cream);font-size:11px;font-weight:400;flex-shrink:0;margin-top:1px}
+.step-text{font-size:13px;color:var(--stone);line-height:1.6}
+.roadmap-step:first-child .step-num{background:var(--persimmon)}
+.roadmap-step:last-child .step-num{background:var(--sage)}
+
+/* ── DARK MODE ── */
+body.dark {
+  --cream:#141210;--washi:#1C1916;--ink:#F0EBE0;--stone:#9A9186;
+  --persimmon:#E07A63;--persimmon-l:#3A1F18;
+  --sage:#7AAD78;--sage-l:#1A2E1A;
+  --indigo:#7A8FBF;--indigo-l:#1A1F35;
+  --gold:#D4A84A;--gold-l:#2E2310;
+  --plum:#A07ABF;--plum-l:#231535;
+  --border:rgba(240,235,224,0.1);--border-s:rgba(240,235,224,0.22);
+}
+body.dark nav{background:rgba(20,18,16,0.94)}
+body.dark .sakura-branch{opacity:0.2;filter:saturate(1.5) brightness(1.2)}
+body.dark .ikigai-center-label{background:rgba(20,18,16,0.92)}
+body.dark .steps-section{background:var(--washi)}
+body.dark .step-card{background:var(--cream)}
+body.dark .about-hero,.dark .four-circles,.dark .about-careers{background:var(--cream)}
+body.dark .cc,.dark .roadmap-meta-item,.dark .roadmap-salary,.dark .gap-box,.dark .err-box{background:var(--washi)}
+body.dark input[type=range]{background:rgba(240,235,224,0.2)}
+body.dark input[type=range]::-webkit-slider-thumb{background:var(--ink)}
+body.dark .opt{background:var(--washi)}
+body.dark .opt.sel{background:var(--persimmon-l);border-color:var(--persimmon)}
+body.dark .opt.sel-single{background:var(--indigo-l);border-color:var(--indigo)}
+body.dark .about-slider-card{background:var(--washi)}
+body.dark .career-card,.dark .career-card-header,.dark .career-axes,.dark .roadmap-section{background:var(--washi)}
+body.dark .roadmap-section{background:var(--cream)}
+body.dark .salary-val{color:var(--persimmon)}
+
+/* Floating dark mode toggle */
+.dark-toggle{
+  position:fixed;bottom:2rem;right:2rem;z-index:999;
+  width:48px;height:48px;border-radius:50%;
+  background:var(--ink);color:var(--cream);
+  border:0.5px solid var(--border-s);
+  font-size:20px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .3s;box-shadow:0 4px 20px rgba(0,0,0,0.15);
+}
+.dark-toggle:hover{transform:scale(1.1);background:var(--persimmon)}
+
+/* ── PROFILE SECTION EXTRAS ── */
+.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:2.5rem}
+.profile-card{padding:1.5rem;border:0.5px solid var(--border);background:var(--washi)}
+.profile-card-title{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--stone);margin-bottom:.5rem}
+.profile-card-q{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;margin-bottom:1rem}
+.profile-opts{display:flex;flex-direction:column;gap:8px}
+.profile-opts .opt{padding:.75rem 1rem}
+.ability-block{display:flex;flex-direction:column;gap:1.5rem}
+</style>
+</head>
+<body>
+
+<div class="sakura-branch"></div>
+<canvas id="ambient-canvas"></canvas>
+
+<!-- Dark Mode Toggle -->
+<button class="dark-toggle" id="darkToggle" onclick="toggleDark()" title="Toggle dark mode">🌙</button>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo" onclick="showPage('home')">生き甲斐 <span>Ikigai</span></div>
+  <ul class="nav-links">
+    <li><a onclick="showPage('home')" id="nav-home" class="active">Home</a></li>
+    <li><a onclick="showPage('quiz')" id="nav-quiz">Discover</a></li>
+    <li><a onclick="showPage('about')" id="nav-about">About Ikigai</a></li>
+  </ul>
+  <div class="server-pill"><span class="sdot" id="sdot"></span><span id="stxt">Checking server...</span></div>
+</nav>
+
+<!-- ════════════ HOME ════════════ -->
+<div id="page-home" class="page active">
+  <section class="hero">
+    <div class="hero-left">
+      <p class="hero-eyebrow">Java-Powered · 20-Question Assessment · Dark Mode Ready</p>
+      <h1 class="hero-title">Find your<br/><em>reason</em><br/>to wake up.</h1>
+      <p class="hero-sub">Most students pick careers based on salary or pressure. Our 16-question Ikigai assessment — processed by a Java backend — finds where your passion, skills, purpose, and livelihood truly align.</p>
+      <div style="margin-bottom:1.5rem">
+        <button class="btn btn-p" onclick="showPage('quiz')">Begin Assessment</button>
+        <button class="btn btn-s" onclick="showPage('about')">What is Ikigai?</button>
+      </div>
+      <div class="server-pill" style="margin-top:.5rem"><span class="sdot" id="sdot2"></span><span id="stxt2">Java server · localhost:8080</span></div>
+    </div>
+    <div class="hero-right">
+      <div class="ikigai-diagram">
+        <div class="ikc love"></div><div class="ikc good"></div>
+        <div class="ikc need"></div><div class="ikc paid"></div>
+        <div class="ikigai-center"><div class="ikigai-center-label">IKIGAI</div></div>
+        <div class="clabels">
+          <span class="clabel cl-love">What you Love</span>
+          <span class="clabel cl-good">Good At</span>
+          <span class="clabel cl-need">World Needs</span>
+          <span class="clabel cl-paid">Paid For</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="steps-section">
+    <div class="section-header">
+      <p class="section-kana">How it works — 6 sections · 20 questions</p>
+      <h2 class="section-title">The more you share, the more precise the match.</h2>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="sdot-sm" style="background:var(--persimmon)"></div>
+        <div class="card-step-num">01–03</div>
+        <div class="step-title">What you Love</div>
+        <div class="step-desc">3 questions — MCQ, dream workday, and trait sliders. Your passion profile in full depth.</div>
+      </div>
+      <div class="step-card">
+        <div class="sdot-sm" style="background:var(--gold)"></div>
+        <div class="card-step-num">04–06</div>
+        <div class="step-title">What you're Good At</div>
+        <div class="step-desc">3 questions — skills, strongest subject, and confidence sliders across analytical/creative/communication.</div>
+      </div>
+      <div class="step-card">
+        <div class="sdot-sm" style="background:var(--sage)"></div>
+        <div class="card-step-num">07–12</div>
+        <div class="step-title">World Needs + Paid For</div>
+        <div class="step-desc">6 questions — including an adaptive Q8 that changes based on your Q7 answers, digging deeper into your personal mission.</div>
+      </div>
+      <div class="step-card">
+        <div class="sdot-sm" style="background:var(--plum)"></div>
+        <div class="card-step-num">13–16</div>
+        <div class="step-title">About You</div>
+        <div class="step-desc">4 extra dimensions — work style, risk appetite, personality, and academic background. The niche-unlocking layer.</div>
+      </div>
+      <div class="step-card">
+        <div class="sdot-sm" style="background:var(--persimmon)"></div>
+        <div class="card-step-num">17–20</div>
+        <div class="step-title">Your Profile</div>
+        <div class="step-desc">4 questions on Personality type, Numerical ability, Verbal ability, and ideal Workplace — the deepest layer of matching.</div>
+      </div>
+    </div>
+  </section>
+  <div class="footer">生き甲斐 · Ikigai Career Predictor · Java Backend + HTML/CSS/JS · 51 Careers · 20 Questions · Dark Mode</div>
+</div>
+
+<!-- ════════════ QUIZ ════════════ -->
+<div id="page-quiz" class="page">
+  <div class="quiz-header">
+    <h1>Your Ikigai Assessment</h1>
+    <div class="quiz-meta">
+      <p>Answer honestly — there are no wrong answers. Questions are served live from the Java backend.</p>
+      <span class="q-counter" id="q-counter">Loading questions...</span>
+    </div>
+    <div class="progress-wrap" id="progress-wrap"></div>
+  </div>
+  <div class="quiz-body" id="quiz-body">
+    <!-- Dynamically rendered from GET /questions -->
+    <div style="text-align:center;padding:4rem">
+      <div class="loading-kanji" style="font-size:48px">生き甲斐</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:var(--stone);margin-top:1rem">Loading questions from Java...</div>
+      <div style="font-size:13px;color:var(--stone);margin-top:.5rem;letter-spacing:.08em">GET /questions · QuestionBank.java</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ RESULTS ════════════ -->
+
+<!-- ════════════ RESULTS ════════════ -->
+<div id="page-results" class="page">
+  <div class="results-header">
+    <h1>Your Ikigai Career Matches</h1>
+    <p>Scored by Java across 5 axes — Love, Good At, World Needs, Paid For, and Compatibility.</p>
+  </div>
+  <div class="results-body" id="results-body"></div>
+</div>
+
+<!-- ════════════ ABOUT ════════════ -->
+<div id="page-about" class="page">
+  <div class="about-hero">
+    <div>
+      <h1>The philosophy<br/>of <em>Ikigai</em></h1>
+      <p>Ikigai (生き甲斐) is a Japanese concept meaning "reason for being." It describes the convergence of what you love, what you're good at, what the world needs, and what you can be paid for.</p>
+      <p style="color:var(--stone);font-size:14px">In Okinawa — one of the world's Blue Zones — residents attribute their extraordinary longevity not just to diet, but to having a clear Ikigai. Purpose, it turns out, is life-giving.</p>
+    </div>
+    <div class="kanji">生き甲斐</div>
+  </div>
+  <div class="four-circles">
+    <div class="cc"><div class="cc-icon" style="background:var(--persimmon)"></div><h3 class="cc-title">What you Love <span>情熱</span></h3><p>Your passions — activities that energise you, that you'd do without pay. Without it, a career becomes a cage.</p></div>
+    <div class="cc"><div class="cc-icon" style="background:var(--gold)"></div><h3 class="cc-title">What you're Good At <span>使命</span></h3><p>Your natural strengths. Being good at something you love turns effort into flow — hours vanish.</p></div>
+    <div class="cc"><div class="cc-icon" style="background:var(--sage)"></div><h3 class="cc-title">What the World Needs <span>天職</span></h3><p>Your mission. Careers that serve a genuine need create lasting impact and lasting employment.</p></div>
+    <div class="cc"><div class="cc-icon" style="background:var(--indigo)"></div><h3 class="cc-title">What you're Paid For <span>職業</span></h3><p>Sustainable livelihood. Ikigai isn't about ignoring money — it's making purpose and paycheck point together.</p></div>
+  </div>
+  <div class="about-careers">
+    <h2>51 careers across 8 clusters in the Java database</h2>
+    <table class="ctable">
+      <thead><tr><th>Career</th><th>Niche</th><th>Ideal Work Style</th><th>Risk Level</th><th>Academic Fit</th></tr></thead>
+      <tbody>
+        <tr><td>Motorsport Data Engineer</td><td>Yes</td><td>Mixed</td><td>Moderate</td><td>Science, Mixed</td></tr>
+        <tr><td>Ethical Hacker</td><td>No</td><td>Solo-leaning</td><td>Moderate-high</td><td>Any</td></tr>
+        <tr><td>AI Ethics Consultant</td><td>Yes</td><td>Team-oriented</td><td>Moderate</td><td>Any</td></tr>
+        <tr><td>UX Researcher</td><td>Yes</td><td>Team-oriented</td><td>Low-moderate</td><td>Any</td></tr>
+        <tr><td>Science Communicator</td><td>Yes</td><td>Mixed</td><td>High</td><td>Any</td></tr>
+        <tr><td>Sustainable Architect</td><td>Yes</td><td>Mixed</td><td>Low-moderate</td><td>Science, Arts</td></tr>
+        <tr><td>Software Engineer</td><td>No</td><td>Mixed</td><td>Moderate</td><td>Science, Any</td></tr>
+        <tr><td>Data Scientist</td><td>No</td><td>Solo-leaning</td><td>Moderate</td><td>Science</td></tr>
+        <tr><td>Documentary Filmmaker</td><td>Yes</td><td>Team-oriented</td><td>Very high</td><td>Arts, Any</td></tr>
+        <tr><td>Biomechanics Engineer</td><td>Yes</td><td>Mixed</td><td>Low</td><td>Science only</td></tr>
+        <tr><td>EdTech Developer</td><td>Yes</td><td>Team-oriented</td><td>Moderate-high</td><td>Any</td></tr>
+        <tr><td>Space Systems Engineer</td><td>Yes</td><td>Mixed</td><td>Moderate</td><td>Science only</td></tr>
+        <tr><td>Neuromarketing Analyst</td><td>Yes</td><td>Mixed</td><td>Moderate</td><td>Any</td></tr>
+        <tr><td>Game Designer</td><td>No</td><td>Mixed</td><td>Moderate-high</td><td>Any</td></tr>
+        <tr><td>Environmental Journalist</td><td>Yes</td><td>Mixed</td><td>Moderate-high</td><td>Arts, Any</td></tr>
+      </tbody>
+    </table>
+    <br/>
+    <button class="btn btn-p" onclick="showPage('quiz')">Take the Assessment</button>
+  </div>
+  <div class="footer">生き甲斐 · Ikigai Career Predictor · Java Backend + HTML/CSS/JS · 16-Question Assessment</div>
+</div>
+
+<script>
+const JAVA = 'http://localhost:8080';
+
+// ── State ──────────────────────────────────────────────────────────────────
+const tags = { love:[], good:[], need:[], paid:[] };
+let academicVal = '';
+let allQuestions = [];        // All questions fetched from Java
+let currentSection = 1;
+let totalSections = 6;
+
+// ── Server health check ────────────────────────────────────────────────────
+async function checkServer() {
+  try {
+    const r = await fetch(JAVA + '/health', {signal: AbortSignal.timeout(3000)});
+    if (r.ok) {
+      const d = await r.json();
+      setSt(true, `Java online · ${d.questions} questions · ${d.careers} careers`);
+    } else setSt(false, 'Server error');
+  } catch { setSt(false, 'Java server offline'); }
+}
+function setSt(on, txt) {
+  ['sdot','sdot2'].forEach(id => {
+    const e = document.getElementById(id);
+    if (e) e.className = 'sdot ' + (on ? 'on' : 'off');
+  });
+  ['stxt','stxt2'].forEach(id => {
+    const e = document.getElementById(id);
+    if (e) e.textContent = txt;
+  });
+}
+checkServer();
+
+// ── Dark mode ──────────────────────────────────────────────────────────────
+function toggleDark() {
+  document.body.classList.toggle('dark');
+  const btn = document.getElementById('darkToggle');
+  btn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+  localStorage.setItem('ikigai-dark', document.body.classList.contains('dark') ? '1' : '0');
+}
+if (localStorage.getItem('ikigai-dark') === '1') {
+  document.body.classList.add('dark');
+  const btn = document.getElementById('darkToggle');
+  if (btn) btn.textContent = '☀️';
+}
+
+// ── COLOR MAP ──────────────────────────────────────────────────────────────
+const COLOR = {
+  persimmon: 'var(--persimmon)',
+  gold:      'var(--gold)',
+  sage:      'var(--sage)',
+  indigo:    'var(--indigo)',
+  plum:      'var(--plum)',
+  coral:     'var(--persimmon)'
+};
+const BORDER_COLOR = {
+  persimmon: 'var(--persimmon-l)',
+  gold:      'var(--gold-l)',
+  sage:      'var(--sage-l)',
+  indigo:    'var(--indigo-l)',
+  plum:      'var(--plum-l)',
+  coral:     'var(--persimmon-l)'
+};
+
+// ── FETCH QUESTIONS FROM JAVA ──────────────────────────────────────────────
+async function loadQuestions() {
+  try {
+    const res = await fetch(JAVA + '/questions');
+    if (!res.ok) throw new Error('Server returned ' + res.status);
+    allQuestions = await res.json();
+    renderQuiz(allQuestions);
+  } catch (err) {
+    document.getElementById('quiz-body').innerHTML = `
+      <div style="padding:3rem 5rem">
+        <div style="border:0.5px solid var(--persimmon-l);background:var(--persimmon-l);padding:2rem">
+          <div style="font-size:14px;color:var(--persimmon);margin-bottom:.5rem">Could not load questions from Java</div>
+          <div style="font-size:13px;color:var(--stone)">Make sure your Java server is running at localhost:8080</div>
+          <div style="font-family:monospace;font-size:12px;margin-top:1rem;background:var(--washi);padding:1rem">
+            cd ~/Downloads/IkigaiPredictor<br/>
+            javac -d out src/com/ikigai/*.java<br/>
+            java -cp out com.ikigai.Main
+          </div>
+        </div>
+      </div>`;
+  }
+}
+
+// ── BUILD QUIZ UI FROM QUESTION DATA ──────────────────────────────────────
+function renderQuiz(questions) {
+  // Group questions by section
+  const sections = {};
+  questions.forEach(q => {
+    if (!sections[q.section]) sections[q.section] = [];
+    sections[q.section].push(q);
+  });
+  totalSections = Object.keys(sections).length;
+
+  // Build progress bar
+  const pw = document.getElementById('progress-wrap');
+  pw.innerHTML = Array.from({length: totalSections}, (_,i) =>
+    `<div class="pseg ${i===0?'active':''}" id="ps${i+1}"></div>`
+  ).join('');
+
+  // Build each section
+  let html = '';
+  Object.keys(sections).sort().forEach((sec, si) => {
+    const qs = sections[sec];
+    const first = qs[0];
+    const isActive = si === 0 ? 'active' : '';
+    const prevBtn = si > 0 ? `<button class="btn btn-s" onclick="goSec(${si})">← Back</button>` : '<div></div>';
+    const nextBtn = si < totalSections - 1
+      ? `<button class="btn btn-p" onclick="goSec(${si+2})">Next →</button>`
+      : `<button class="btn btn-p" onclick="submitToJava()">Send to Java Server →</button>`;
+
+    html += `<div class="quiz-section ${isActive}" id="qs-${si+1}">`;
+    html += `<div class="circle-badge" style="border-color:${BORDER_COLOR[first.sectionColor]||'var(--border)'}">
+      <span class="bdot" style="background:${COLOR[first.sectionColor]||'var(--ink)'}"></span>
+      Section ${sec} of ${totalSections} — ${first.sectionName}
+    </div>`;
+
+    qs.forEach((q, qi) => {
+      if (qi > 0) html += '<hr class="section-divider"/>';
+      html += renderQuestion(q);
+    });
+
+    html += `<div class="quiz-nav">${prevBtn}${nextBtn}</div>`;
+    html += `</div>`;
+  });
+
+  // Add loading section
+  html += `<div class="quiz-section" id="qs-loading">
+    <div class="loading-wrap">
+      <div class="loading-kanji">生き甲斐</div>
+      <div class="loading-text">Java is computing your Ikigai...</div>
+      <div class="loading-sub">POST /predict · IkigaiMatcher.java · ${questions.length} questions · 51 careers</div>
+    </div>
+  </div>`;
+
+  document.getElementById('quiz-body').innerHTML = html;
+  updateCounter(1);
+}
+
+// ── RENDER A SINGLE QUESTION ───────────────────────────────────────────────
+function renderQuestion(q) {
+  let html = `<div class="question-block">`;
+  html += `<div class="q-label">${q.label}</div>`;
+
+  // Adaptive Q8 gets special IDs
+  if (q.id === 'need-2') {
+    html += `<div class="q-text" id="q8-title">${q.question}</div>`;
+    html += `<div class="q-hint" id="q8-hint">${q.hint}</div>`;
+  } else {
+    html += `<div class="q-text">${q.question}</div>`;
+    html += `<div class="q-hint">${q.hint}</div>`;
+  }
+
+  const isMulti   = q.type === 'multi';
+  const isSingle  = q.type === 'single' || q.type === 'single+slider';
+  const hasSlider = q.type === 'slider' || q.type === 'single+slider' || q.type === 'multi+slider';
+  const groupId   = `grp-${q.id}`;
+
+  // MCQ Options
+  if (q.options) {
+    const gridClass = isSingle ? 'options-grid opts-single' : 'options-grid';
+    const gridId    = q.id === 'need-2' ? 'need-q2' : groupId;
+    const mbStyle   = hasSlider ? 'margin-bottom:1.5rem' : '';
+    html += `<div class="${gridClass}" id="${gridId}" style="${mbStyle}">`;
+
+    q.options.forEach(opt => {
+      // Academic MCQ maps to selAcademic
+      if (q.id === 'about-4') {
+        html += `<div class="opt" style="padding:.75rem 1rem" onclick="selAcademic(this,'${opt.tag}')">
+          <span class="opt-num" style="font-size:14px">${opt.letter}</span>
+          <span class="opt-text">${opt.text}</span>
+        </div>`;
+      } else if (isSingle) {
+        let extra = '';
+        // Q17 personality — also call setPersona
+        if (q.id === 'profile-1') {
+          const personaMap = {people:'extrovert',logic:'introvert',teach:'ambivert',lead:'leader',creative:'creative',nature:'practical'};
+          const ptype = personaMap[opt.tag] || 'ambivert';
+          extra = `;setPersona('${ptype}')`;
+        }
+        // Q20 workplace — also call setWorkEnv
+        if (q.id === 'profile-4') {
+          const envMap = {research:2,'tech-industry':3,'creative-industry':4,freelance:2,specialised:3,corporate:4};
+          const wval = envMap[opt.tag] || 3;
+          extra = `;setWorkEnv(${wval})`;
+        }
+        html += `<div class="opt" onclick="single(this,'${gridId}','${q.circle}','${opt.tag}')${extra}">
+          <span class="opt-num">${opt.letter}</span>
+          <span class="opt-text">${opt.text}</span>
+        </div>`;
+      } else {
+        html += `<div class="opt" onclick="tog(this,'${q.circle}','${opt.tag}')">
+          <span class="opt-num">${opt.letter}</span>
+          <span class="opt-text">${opt.text}</span>
+        </div>`;
+      }
+    });
+    html += `</div>`;
+  }
+
+  // Sliders
+  if (hasSlider && q.sliders) {
+    html += `<div class="sliders-wrap">`;
+    q.sliders.forEach(sl => {
+      const valId = sl.id.replace('sl-', 'sv-');
+      const syncCall = sl.syncKey ? `;sync_${sl.syncKey}(this.value)` : '';
+      html += `<div class="slider-row">
+        <div class="slider-trait">${sl.label}</div>
+        <div class="slider-wrap-inner">
+          <input type="range" min="1" max="5" value="3" step="1"
+            id="${sl.id}"
+            oninput="updSl('${valId}',this.value)${syncCall}"/>
+          <div class="slider-ends"><span>${sl.leftLabel}</span><span>${sl.rightLabel}</span></div>
+        </div>
+        <div class="slider-val" id="${valId}">3</div>
+      </div>`;
+    });
+    html += `</div>`;
+
+    // Special label display for section 5 sliders
+    if (q.id === 'about-1') html += `<div style="text-align:center;font-size:12px;color:var(--stone);margin-top:8px;letter-spacing:.06em" id="lbl-ws">Balanced mix</div>`;
+    if (q.id === 'about-2') html += `<div style="text-align:center;font-size:12px;color:var(--stone);margin-top:8px;letter-spacing:.06em" id="lbl-risk">Calculated risks</div>`;
+    if (q.id === 'about-3') html += `<div style="text-align:center;font-size:12px;color:var(--stone);margin-top:8px;letter-spacing:.06em" id="lbl-pers">True ambivert</div>`;
+  }
+
+  html += `</div>`;
+  return html;
+}
+
+// ── PROGRESS + NAVIGATION ──────────────────────────────────────────────────
+function updateCounter(n) {
+  const labels = {1:'1–3',2:'4–6',3:'7–9',4:'10–12',5:'13–16',6:'17–20'};
+  document.getElementById('q-counter').textContent =
+    `Section ${n} of ${totalSections} · Q${labels[n] || ''} of 20`;
+}
+
+function goSec(n) {
+  document.querySelectorAll('.quiz-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('qs-' + n).classList.add('active');
+  for (let i = 1; i <= totalSections; i++) {
+    const seg = document.getElementById('ps' + i);
+    if (seg) seg.className = 'pseg' + (i < n ? ' done' : i === n ? ' active' : '');
+  }
+  updateCounter(n);
+  currentSection = n;
+  if (n === 3) buildQ8();
+  window.scrollTo(0, 0);
+}
+
+// ── MCQ multi-select ───────────────────────────────────────────────────────
+function tog(el, circle, tag) {
+  const sel = tags[circle] || [];
+  if (!tags[circle]) tags[circle] = [];
+  if (el.classList.contains('sel')) {
+    el.classList.remove('sel');
+    const i = sel.indexOf(tag); if (i > -1) sel.splice(i, 1);
+  } else {
+    if (sel.length >= 2) {
+      const oldTag = sel[0];
+      document.querySelectorAll(`.opt.sel`).forEach(e => {
+        if (e.getAttribute('onclick') && e.getAttribute('onclick').includes(`'${circle}','${oldTag}'`)) {
+          e.classList.remove('sel');
+        }
+      });
+      sel.shift();
+    }
+    el.classList.add('sel'); sel.push(tag);
+  }
+}
+
+// ── MCQ single select ──────────────────────────────────────────────────────
+function single(el, groupId, circle, tag) {
+  document.querySelectorAll('#' + groupId + ' .opt').forEach(o =>
+    o.classList.remove('sel', 'sel-single'));
+  el.classList.add('sel', 'sel-single');
+  if (!window._singles) window._singles = {};
+  const prev = window._singles[groupId];
+  if (prev && tags[circle]) {
+    const idx = tags[circle].indexOf(prev);
+    if (idx > -1) tags[circle].splice(idx, 1);
+  }
+  window._singles[groupId] = tag;
+  if (!tags[circle]) tags[circle] = [];
+  tags[circle].push(tag);
+}
+
+// ── Academic select ────────────────────────────────────────────────────────
+function selAcademic(el, val) {
+  document.querySelectorAll('#grp-about-4 .opt').forEach(o =>
+    o.classList.remove('sel', 'sel-single'));
+  el.classList.add('sel', 'sel-single');
+  academicVal = val;
+}
+
+// ── Slider helpers ─────────────────────────────────────────────────────────
+function updSl(id, val) {
+  const el = document.getElementById(id); if (el) el.textContent = val;
+}
+function updLabel(id, val, labels) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = labels[parseInt(val) - 1];
+}
+function slVal(id) {
+  const el = document.getElementById(id); return el ? parseInt(el.value) : 3;
+}
+
+// Sync functions called from dynamic slider oninput
+function sync_workStyle(val) {
+  updLabel('lbl-ws', val, ['Deep solo focus','Mostly solo','Balanced mix','Team-oriented','Thrive in teams']);
+}
+function sync_riskAppetite(val) {
+  updLabel('lbl-risk', val, ['Stability above all','Prefer stability','Calculated risks','Comfortable with risk','Embrace uncertainty']);
+}
+function sync_personality(val) {
+  updLabel('lbl-pers', val, ['Strong introvert','Mostly introvert','True ambivert','Mostly extrovert','Strong extrovert']);
+}
+function sync_numerical(val) { window._numericalVal = parseInt(val); }
+function sync_verbal(val)     { window._verbalVal   = parseInt(val); }
+
+// ── Section 6 helpers ──────────────────────────────────────────────────────
+function setPersona(type) {
+  const map = {extrovert:5, introvert:1, ambivert:3, leader:4, creative:3, practical:2};
+  const val = map[type] || 3;
+  const el = document.getElementById('sl-personality');
+  if (el) { el.value = val; updSl('sv-personality', val); sync_personality(val); }
+}
+function setWorkEnv(val) {
+  const el = document.getElementById('sl-workStyle');
+  if (el) { el.value = val; updSl('sv-workStyle', val); sync_workStyle(val); }
+}
+
+// ── Adaptive Q8 ────────────────────────────────────────────────────────────
+const Q8_OPTIONS = {
+  cyber:       [{tag:'cyber',    text:'Build systems that protect people from digital threats'},
+                {tag:'ai-ethics',text:'Ensure AI and technology are used responsibly and safely'},
+                {tag:'performance',text:'Strengthen security in critical infrastructure'}],
+  health:      [{tag:'health',   text:'Directly improve how people are diagnosed, treated, and healed'},
+                {tag:'education',text:'Make health knowledge and resources accessible to everyone'},
+                {tag:'performance',text:'Push the limits of medical technology and engineering'}],
+  education:   [{tag:'education',text:'Make quality education accessible to every child in India and beyond'},
+                {tag:'stories',  text:'Change how people think through powerful storytelling'},
+                {tag:'health',   text:'Help people understand themselves better through psychology'}],
+  climate:     [{tag:'climate',  text:'Protect the environment and design sustainable systems'},
+                {tag:'performance',text:'Build green technology that makes clean energy viable at scale'},
+                {tag:'stories',  text:'Expose environmental injustice through journalism'}],
+  'ai-ethics': [{tag:'ai-ethics',text:'Ensure AI systems are built with fairness and transparency'},
+                {tag:'education',text:'Help people understand how AI affects their lives and rights'},
+                {tag:'cyber',    text:'Protect people from misuse of AI and data'}],
+  performance: [{tag:'performance',text:'Push the absolute limits of what machines and humans can do'},
+                {tag:'health',   text:'Use engineering to help athletes and patients perform better'},
+                {tag:'cyber',    text:'Ensure high-performance critical systems are safe and secure'}],
+  business:    [{tag:'business', text:'Create economic opportunities for underserved communities'},
+                {tag:'education',text:'Build businesses that genuinely improve quality of life'},
+                {tag:'stories',  text:'Give a voice to entrepreneurs and change-makers not being heard'}],
+  stories:     [{tag:'stories',  text:'Tell the stories of people the world overlooks'},
+                {tag:'education',text:'Change hearts and minds through compelling creative content'},
+                {tag:'climate',  text:'Bring urgent issues like climate change into public conversation'}]
+};
+const Q8_DEFAULT = [
+  {tag:'performance',text:'Advance technology and push what is possible in your field'},
+  {tag:'health',     text:'Improve human health, wellbeing, or mental resilience'},
+  {tag:'education',  text:'Make quality education and knowledge accessible to everyone'},
+  {tag:'climate',    text:'Protect the environment and build a more sustainable world'},
+  {tag:'ai-ethics',  text:'Make AI and data systems fairer and more ethically sound'},
+  {tag:'stories',    text:'Tell stories that expose injustice and shift cultural conversation'}
+];
+
+function buildQ8() {
+  const selected  = tags.need || [];
+  const container = document.getElementById('need-q2');
+  const titleEl   = document.getElementById('q8-title');
+  const hintEl    = document.getElementById('q8-hint');
+  if (!container) return;
+
+  // Clear old Q8 single-select state
+  if (window._singles && window._singles['need-q2']) {
+    const old = window._singles['need-q2'];
+    const idx = (tags.need||[]).indexOf(old);
+    if (idx > -1) tags.need.splice(idx, 1);
+    delete window._singles['need-q2'];
+  }
+
+  let options = [];
+  if (selected.length === 0) {
+    options = Q8_DEFAULT;
+    if (titleEl) titleEl.textContent = 'How do you most want your work to impact the world?';
+    if (hintEl)  hintEl.textContent  = 'Choose just one — the deepest truth.';
+  } else {
+    const seen = new Set();
+    selected.forEach(tag => {
+      (Q8_OPTIONS[tag] || []).forEach(opt => {
+        if (!seen.has(opt.tag)) { seen.add(opt.tag); options.push(opt); }
+      });
+    });
+    Q8_DEFAULT.forEach(opt => {
+      if (options.length < 6 && !seen.has(opt.tag)) { seen.add(opt.tag); options.push(opt); }
+    });
+    options = options.slice(0, 6);
+    const topLabel = selected.length === 1
+      ? `You care about ${selected[0].replace('-',' ')} — which of these is your true calling?`
+      : `You care about ${selected.join(' and ')} — which of these is truly your mission?`;
+    if (titleEl) titleEl.textContent = topLabel;
+    if (hintEl)  hintEl.textContent  = 'These options are tailored to your Q7 answers. Choose just one.';
+  }
+
+  const letters = ['A','B','C','D','E','F'];
+  container.innerHTML = options.map((opt, i) =>
+    `<div class="opt" onclick="single(this,'need-q2','need','${opt.tag}')">
+      <span class="opt-num">${letters[i]}</span>
+      <span class="opt-text">${opt.text}</span>
+    </div>`
+  ).join('');
+}
+
+// ── SUBMIT TO JAVA ─────────────────────────────────────────────────────────
+async function submitToJava() {
+  document.querySelectorAll('.quiz-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('qs-loading').classList.add('active');
+
+  const payload = {
+    loveTags: tags.love || [],
+    goodTags: tags.good || [],
+    needTags: tags.need || [],
+    paidTags: tags.paid || [],
+    loveSliders: {
+      creative:  slVal('sl-love-creative'),
+      technical: slVal('sl-love-technical'),
+      people:    slVal('sl-love-people')
+    },
+    goodSliders: {
+      analytical:    Math.round((slVal('sl-good-analytical') + (window._numericalVal || 3)) / 2),
+      creative:      slVal('sl-good-creative'),
+      communication: Math.round((slVal('sl-good-communication') + (window._verbalVal || 3)) / 2)
+    },
+    needSliders: {
+      technology:  slVal('sl-need-technology'),
+      human:       slVal('sl-need-human'),
+      environment: slVal('sl-need-environment')
+    },
+    paidSliders: {
+      salary:      slVal('sl-paid-salary'),
+      security:    slVal('sl-paid-security'),
+      flexibility: slVal('sl-paid-flexibility')
+    },
+    workStyle:    slVal('sl-workStyle'),
+    riskAppetite: slVal('sl-riskAppetite'),
+    personality:  slVal('sl-personality'),
+    academic:     academicVal || 'any'
+  };
+
+  try {
+    const res = await fetch(JAVA + '/predict', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error('Server returned ' + res.status);
+    renderResults(await res.json());
+  } catch (err) {
+    renderError(err, payload);
+  }
+}
+
+// ── RENDER RESULTS ─────────────────────────────────────────────────────────
+function renderResults(data) {
+  const axColors = {love:'#C4614A',good:'#B8892A',need:'#5C7B5A',paid:'#4A5B8C',compatibility:'#7A5C8C'};
+  const clusterColors = {IT:'#4A5B8C',Science:'#5C7B5A',Medical:'#C4614A',Agriculture:'#5C7B5A',Arts:'#B8892A',Safety:'#7A5C8C'};
+  const medals = ['🥇','🥈','🥉'];
+  let html = `<div class="java-badge">✦ Scored by Java · IkigaiMatcher.java · 20-question dynamic quiz · 51 careers</div>`;
+
+  data.results.forEach((c, i) => {
+    const clrColor = clusterColors[c.cluster] || '#7A7268';
+    const stepsHtml = (c.roadmap.steps || []).map((step, si) =>
+      `<div class="roadmap-step">
+        <span class="step-num">${si + 1}</span>
+        <span class="step-text">${step}</span>
+      </div>`
+    ).join('');
+
+    html += `
+    <div class="career-card" style="animation-delay:${i * 0.15}s" id="career-${i}">
+      <div class="career-card-header" onclick="toggleCareer(${i})" style="cursor:pointer" title="Click to expand">
+        <span class="career-rank ${i===0?'gold':''}">${medals[i]}</span>
+        <div class="career-info">
+          <div class="career-name">${c.name}${c.isNiche ? '<span class="niche-tag">Niche</span>' : ''}</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+            <span style="font-size:11px;padding:2px 8px;background:${clrColor}22;color:${clrColor};letter-spacing:.08em;text-transform:uppercase">${c.cluster}</span>
+            <span style="font-size:12px;color:var(--stone);letter-spacing:.06em">IKIGAI MATCH · 5-AXIS</span>
+          </div>
+        </div>
+        <div class="career-score" data-score="${c.matchPercent}">0<span>% match</span></div>
+      </div>
+      <button class="career-expand-btn" onclick="toggleCareer(${i})">Why this fits you ↓</button>
+      <div class="career-axes">
+        <div class="career-desc">${c.description}</div>
+        ${['love','good','need','paid','compatibility'].map(ax => {
+          const lbs = {love:'❤  Love', good:'✦  Good At', need:'◎  Needs', paid:'◈  Paid For', compatibility:'◉  Compat.'};
+          return `<div class="axis-row">
+            <span class="axis-label">${lbs[ax]}</span>
+            <div class="axis-bar-wrap"><div class="axis-bar" data-width="${c.axes[ax]}%" style="width:0%;background:${axColors[ax]}"></div></div>
+            <span class="axis-pct">${c.axes[ax]}%</span>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="roadmap-section">
+        <div class="roadmap-header">
+          <span class="roadmap-title">🇮🇳 Your Indian Career Roadmap</span>
+          <span class="roadmap-timeline">${c.roadmap.timeline}</span>
+        </div>
+        <div class="roadmap-meta">
+          <div class="roadmap-meta-item">
+            <div class="rm-label">Class 11-12 Stream</div>
+            <div class="rm-value">${c.roadmap.stream}</div>
+          </div>
+          <div class="roadmap-meta-item">
+            <div class="rm-label">Key Exams to Write</div>
+            <div class="rm-value">${c.roadmap.exams}</div>
+          </div>
+          <div class="roadmap-meta-item">
+            <div class="rm-label">Top Indian Colleges</div>
+            <div class="rm-value">${c.roadmap.colleges}</div>
+          </div>
+        </div>
+        <div class="roadmap-salary">
+          <div class="salary-box">
+            <div class="salary-label">Starting Salary</div>
+            <div class="salary-val">${c.roadmap.salaryStart}</div>
+          </div>
+          <div class="salary-arrow">→</div>
+          <div class="salary-box">
+            <div class="salary-label">Experienced (5+ yrs)</div>
+            <div class="salary-val" style="color:var(--sage)">${c.roadmap.salaryGrowth}</div>
+          </div>
+        </div>
+        <div class="roadmap-steps-title">Step-by-step from Class 10 to Career</div>
+        <div class="roadmap-steps">${stepsHtml}</div>
+      </div>
+    </div>`;
+  });
+
+  html += `
+  <div class="gap-box">
+    <div>
+      <div class="gap-title">⚠ Your Ikigai Gap — Java Analysis</div>
+      <div class="gap-text"><strong>Weakest axis: ${data.weakAxis}</strong><br/>${data.advice}</div>
+    </div>
+  </div>
+  <div class="retake-wrap">
+    <button class="btn btn-s" onclick="retake()">← Retake Assessment</button>
+    <button class="btn btn-p" style="margin-left:1rem" onclick="showPage('about')">Learn about Ikigai →</button>
+  </div>`;
+
+  document.getElementById('results-body').innerHTML = html;
+  showPage('results');
+}
+
+// ── ERROR DISPLAY ──────────────────────────────────────────────────────────
+function renderError(err, payload) {
+  document.getElementById('results-body').innerHTML = `
+  <div class="err-box">
+    <div class="err-title">Java Server Not Reachable</div>
+    <div class="err-text">Tried <strong>localhost:8080/predict</strong> — couldn't connect. Start the Java server first.</div>
+    <div class="err-code">
+      1. cd IkigaiPredictor/<br/>
+      2. javac -d out src/com/ikigai/*.java<br/>
+      3. java -cp out com.ikigai.Main<br/><br/>
+      Error: ${err.message}
+    </div>
+  </div>
+  <div class="retake-wrap"><button class="btn btn-s" onclick="retake()">← Back to Quiz</button></div>`;
+  showPage('results');
+}
+
+// ── RETAKE ─────────────────────────────────────────────────────────────────
+function retake() {
+  ['love','good','need','paid'].forEach(c => tags[c] = []);
+  window._singles = {};
+  window._numericalVal = 3;
+  window._verbalVal = 3;
+  academicVal = '';
+  // Re-fetch and re-render quiz fresh from Java
+  renderQuiz(allQuestions);
+  goSec(1);
+  showPage('quiz');
+}
+
+// ── PAGE NAVIGATION ────────────────────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+  const m = {home:'nav-home', quiz:'nav-quiz', results:'nav-quiz', about:'nav-about'};
+  const el = document.getElementById(m[name]); if (el) el.classList.add('active');
+  // Load questions when quiz page is first shown
+  if (name === 'quiz' && allQuestions.length === 0) loadQuestions();
+  window.scrollTo(0, 0);
+}
+
+// ── AMBIENT ANIMATIONS & MICROINTERACTIONS ─────────────────────────────────
+
+// Ripple effect on buttons
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.btn');
+  if (btn && !btn.disabled) {
+    const rect = btn.getBoundingClientRect();
+    const ripple = document.createElement('div');
+    ripple.className = 'ripple';
+    const size = Math.max(rect.width, rect.height);
+    ripple.style.width = ripple.style.height = `${size}px`;
+    ripple.style.left = `${e.clientX - rect.left - size/2}px`;
+    ripple.style.top = `${e.clientY - rect.top - size/2}px`;
+    btn.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+  }
+});
+
+// Career Card Expansion
+window.toggleCareer = function(idx) {
+  const card = document.getElementById('career-' + idx);
+  if (!card) return;
+  card.classList.toggle('expanded');
+  const btn = card.querySelector('.career-expand-btn');
+  if (card.classList.contains('expanded')) {
+    btn.innerHTML = 'Hide details ↑';
+  } else {
+    btn.innerHTML = 'Why this fits you ↓';
+  }
+};
+
+// Result Animations Content
+window.animateResults = function() {
+  document.querySelectorAll('.career-card').forEach((card, idx) => {
+    const scoreEl = card.querySelector('.career-score');
+    if (scoreEl) {
+      const target = parseInt(scoreEl.getAttribute('data-score')) || 0;
+      let curr = 0;
+      const step = Math.max(1, Math.ceil(target / 40));
+      const intv = setInterval(() => {
+        curr += step;
+        if (curr >= target) { curr = target; clearInterval(intv); }
+        scoreEl.innerHTML = `${curr}<span>% match</span>`;
+      }, 30);
+    }
+    setTimeout(() => {
+      card.querySelectorAll('.axis-bar').forEach(bar => {
+        bar.style.width = bar.getAttribute('data-width');
+      });
+    }, (idx * 150) + 300);
+  });
+};
+
+// Hook animation into renderResults
+const origRenderResults = renderResults;
+renderResults = function(data) {
+  origRenderResults(data);
+  setTimeout(window.animateResults, 100);
+};
+
+// Hook transition reset into goSec
+const origGoSec = goSec;
+goSec = function(n) {
+  origGoSec(n);
+  const qblocks = document.querySelectorAll('#qs-' + n + ' .question-block');
+  qblocks.forEach(qb => {
+    qb.style.animation = 'none';
+    void qb.offsetWidth;
+    qb.style.animation = null; 
+  });
+};
+
+// Ambient Canvas setup
+function initAmbient() {
+  const canvas = document.getElementById('ambient-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let w = canvas.width = window.innerWidth;
+  let h = canvas.height = window.innerHeight;
+  window.addEventListener('resize', () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; });
+  
+  const particles = [];
+  for (let i = 0; i < 35; i++) {
+    particles.push({
+      x: Math.random() * w, y: Math.random() * h,
+      size: Math.random() * 2.5 + 1,
+      speedX: Math.random() * 0.4 - 0.2,
+      speedY: Math.random() * 0.6 + 0.2,
+      isPetal: Math.random() > 0.6,
+      angle: Math.random() * Math.PI * 2,
+      spin: Math.random() * 0.02 - 0.01
+    });
+  }
+  
+  function draw() {
+    ctx.clearRect(0, 0, w, h);
+    const isDark = document.body.classList.contains('dark');
+    
+    particles.forEach(p => {
+      p.x += p.speedX; p.y += p.speedY; p.angle += p.spin;
+      if (p.y > h + 20) { p.y = -20; p.x = Math.random() * w; }
+      if (p.x > w + 20) { p.x = -20; }
+      if (p.x < -20) { p.x = w + 20; }
+      
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.angle);
+      if (p.isPetal) {
+        ctx.fillStyle = isDark ? 'rgba(224,122,99,0.15)' : 'rgba(196,97,74,0.2)';
+        ctx.beginPath();
+        ctx.ellipse(0, 0, p.size * 2, p.size, 0, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.fillStyle = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(122,114,104,0.08)';
+        ctx.beginPath();
+        ctx.arc(0, 0, p.size / 2, 0, Math.PI*2);
+        ctx.fill();
+      }
+      ctx.restore();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+// Start canvas soon after load
+setTimeout(initAmbient, 100);
+
+// Load questions on startup
+loadQuestions();
+</script>
+</body>
+</html>
