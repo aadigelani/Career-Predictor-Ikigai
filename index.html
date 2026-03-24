@@ -332,7 +332,7 @@ body.dark .salary-val{color:var(--persimmon)}
         <button class="btn btn-p" onclick="showPage('quiz')">Begin Assessment</button>
         <button class="btn btn-s" onclick="showPage('about')">What is Ikigai?</button>
       </div>
-      <div class="server-pill" style="margin-top:.5rem"><span class="sdot" id="sdot2"></span><span id="stxt2">Java server · localhost:8080</span></div>
+      <div class="server-pill" style="margin-top:.5rem"><span class="sdot" id="sdot2"></span><span id="stxt2">Java server · https://career-predictor-ikigai-1.onrender.com</span></div>
     </div>
     <div class="hero-right">
       <div class="ikigai-diagram">
@@ -540,7 +540,7 @@ async function loadQuestions() {
       <div style="padding:3rem 5rem">
         <div style="border:0.5px solid var(--persimmon-l);background:var(--persimmon-l);padding:2rem">
           <div style="font-size:14px;color:var(--persimmon);margin-bottom:.5rem">Could not load questions from Java</div>
-          <div style="font-size:13px;color:var(--stone)">Make sure your Java server is running at localhost:8080</div>
+          <div style="font-size:13px;color:var(--stone)">Make sure your Java server is running at https://career-predictor-ikigai-1.onrender.com</div>
           <div style="font-family:monospace;font-size:12px;margin-top:1rem;background:var(--washi);padding:1rem">
             cd ~/Downloads/IkigaiPredictor<br/>
             javac -d out src/com/ikigai/*.java<br/>
@@ -1028,7 +1028,7 @@ function renderError(err, payload) {
   document.getElementById('results-body').innerHTML = `
   <div class="err-box">
     <div class="err-title">Java Server Not Reachable</div>
-    <div class="err-text">Tried <strong>localhost:8080/predict</strong> — couldn't connect. Start the Java server first.</div>
+    <div class="err-text">Tried <strong>https://career-predictor-ikigai-1.onrender.com/predict</strong> — couldn't connect. Start the Java server first.</div>
     <div class="err-code">
       1. cd IkigaiPredictor/<br/>
       2. javac -d out src/com/ikigai/*.java<br/>
