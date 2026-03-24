@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: ikigai-backend
+    runtime: java
+    buildCommand: javac -d out src/com/ikigai/*.java
+    startCommand: java -cp out com.ikigai.Main
